@@ -1,6 +1,41 @@
 import streamlit as st
 import os
 
+# Custom CSS for styling
+st.markdown("""
+    <style>
+    .main {
+        background-color: #F5F5F5;
+    }
+    .sidebar .sidebar-content {
+        background-color: #2C3E50;
+        color: white;
+    }
+    .stButton>button {
+        background-color: #3498DB;
+        color: white;
+        border-radius: 5px;
+        padding: 10px 24px;
+    }
+    .stTextInput>div>div>input {
+        border-radius: 5px;
+    }
+    .highlight {
+        background-color: #EBF5FB;
+        border-radius: 10px;
+        padding: 15px;
+        margin: 10px 0;
+    }
+    .book-card {
+        background-color: white;
+        border-radius: 10px;
+        padding: 15px;
+        margin: 10px 0;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+    </style>
+    """, unsafe_allow_html=True)
+
 BOOKS_FILE = 'data/books.txt'
 ISSUED_BOOKS_FILE = 'data/issued_books.txt'
 
@@ -36,92 +71,128 @@ def save_issued_books(issued_books, file):
 
 books = load_books(BOOKS_FILE)
 issued_books = load_issued_books(ISSUED_BOOKS_FILE)
+# Main app structure
+st.markdown("<h1 style='text-align: center; color: #2C3E50; margin-bottom: 0;'>📚 Bookify</h1>", unsafe_allow_html=True)
+st.markdown("<h3 style='text-align: center; color: #3498DB; margin-top: 0;'>Library Management System</h3>", unsafe_allow_html=True)
 
-st.title("Library Management System")
-st.sidebar.title("VIT BHOPAL UNIVERSITY")
-st.sidebar.subheader("Central Library ")
-option = st.sidebar.radio(
-    'Choose an option',
-    ('Add a New Book', 'Issue a Book', 'Return a Book', 'Delete a Book', 'Display Available Books', 'Display Issued Books')
-)
-if 'clicked' not in st.session_state:
-    st.session_state.clicked = False
-st.sidebar.info("DEEPAK SHUKLA \n 23BCE11422")
+# Sidebar styling
+with st.sidebar:
+    #st.markdown("<div style='padding: 20px; border-radius: 10px; background-color: #2C3E50;'>", unsafe_allow_html=True)
+    st.markdown("<h1 style='color: #3498DB; text-align: left;'>OPTIONS</h1>", unsafe_allow_html=True)
+    #st.markdown("<h3 style='color: #2C3E50; text-align: center;'>Central Library</h3>", unsafe_allow_html=True)
+    st.markdown("</div>", unsafe_allow_html=True)
+    
+    option = st.radio(
+        'Menu',
+        ('Add a New Book', 'Issue a Book', 'Return a Book', 
+         'Delete a Book', 'Available Books', 'Issued Books'),
+        label_visibility='collapsed'
+    )
+    
+    st.markdown("---")
+    st.markdown("<div style='text-align: center; color: #BDC3C7;'>", unsafe_allow_html=True)
+    st.caption("Developed by Deepak Shukla")
+    st.caption("23BCE11422")
+    st.markdown("</div>", unsafe_allow_html=True)
 
-left_col, middle_col, right_col = st.columns([1, 2, 1])
+
+container = st.container()
 
 if option == 'Add a New Book':
-    with middle_col:
-        st.header("Add a New Book")
-        book_title = st.text_input("Book Title")
-        book_id = st.text_input("Book ID")
-
-        if st.button("Add Book"):
-            if book_id in books:
-                st.error("Book ID already exists!")
-            else:
-                books[book_id] = book_title
-                save_books(books, BOOKS_FILE)
-                st.success(f"Book '{book_title}' added successfully!")
+    with container:
+        st.subheader("📖 Add New Book")
+        with st.form("add_book_form"):
+            cols = st.columns(2)
+            book_id = cols[0].text_input("Book ID")
+            book_title = cols[1].text_input("Book Title")
+            
+            if st.form_submit_button("➕ Add Book"):
+                if book_id in books:
+                    st.error("❌ Book ID already exists!")
+                else:
+                    books[book_id] = book_title
+                    save_books(books, BOOKS_FILE)
+                    st.success(f"✅ Successfully added '{book_title}'!")
 
 elif option == 'Issue a Book':
-    with middle_col:
-        st.header("Issue a Book")
-        issue_book_id = st.text_input("Enter Book ID to Issue")
-        student_name = st.text_input("Student Name")
-        student_id = st.text_input("Student ID")
-
-        if st.button("Issue Book"):
-            if issue_book_id not in books:
-                st.error("Book ID not found!")
-            elif issue_book_id in issued_books:
-                st.error("Book is already issued!")
-            else:
-                issued_books[issue_book_id] = {"student_name": student_name, "student_id": student_id}
-                save_issued_books(issued_books, ISSUED_BOOKS_FILE)
-                st.success(f"Book '{books[issue_book_id]}' issued to '{student_name}'!")
+    with container:
+        st.subheader("🎒 Issue Book")
+        with st.expander("Issue a Book to Student", expanded=True):
+            with st.form("issue_form"):
+                cols = st.columns([2,1,1])
+                book_id = cols[0].text_input("Book ID")
+                student_name = cols[1].text_input("Student Name")
+                student_id = cols[2].text_input("Student ID")
+                
+                if st.form_submit_button("📤 Issue Book"):
+                    if book_id not in books:
+                        st.error("❌ Book not found!")
+                    elif book_id in issued_books:
+                        st.error("⚠️ Book already issued!")
+                    else:
+                        issued_books[book_id] = {
+                            "student_name": student_name,
+                            "student_id": student_id
+                        }
+                        save_issued_books(issued_books, ISSUED_BOOKS_FILE)
+                        st.success(f"✅ Issued '{books[book_id]}' to {student_name}")
 
 elif option == 'Return a Book':
-    with middle_col:
-        st.header("Return a Book")
-        return_book_id = st.text_input("Enter Book ID to Return")
-
-        if st.button("Return Book"):
-            if return_book_id not in issued_books:
-                st.error("Book ID not found in issued books!")
-            else:
-                del issued_books[return_book_id]
-                save_issued_books(issued_books, ISSUED_BOOKS_FILE)
-                st.success("Book returned successfully!")
+    with container:
+        st.subheader("📥 Return Book")
+        with st.form("return_form"):
+            book_id = st.text_input("Enter Book ID to Return")
+            
+            if st.form_submit_button("🔄 Return Book"):
+                if book_id not in issued_books:
+                    st.error("❌ Book not issued!")
+                else:
+                    del issued_books[book_id]
+                    save_issued_books(issued_books, ISSUED_BOOKS_FILE)
+                    st.success("✅ Book returned successfully!")
 
 elif option == 'Delete a Book':
-    with middle_col:
-        st.header("Delete a Book")
-        delete_book_id = st.text_input("Enter Book ID to Delete")
+    with container:
+        st.subheader("🗑️ Delete Book")
+        with st.form("delete_form"):
+            book_id = st.text_input("Enter Book ID to Delete")
+            
+            if st.form_submit_button("❌ Delete Book"):
+                if book_id not in books:
+                    st.error("🚫 Book not found!")
+                elif book_id in issued_books:
+                    st.error("⚠️ Cannot delete issued book!")
+                else:
+                    del books[book_id]
+                    save_books(books, BOOKS_FILE)
+                    st.success("✅ Book deleted successfully!")
 
-        if st.button("Delete Book"):
-            if delete_book_id not in books:
-                st.error("Book ID not found!")
-            elif delete_book_id in issued_books:
-                st.error("Book is currently issued and cannot be deleted!")
-            else:
-                del books[delete_book_id]
-                save_books(books, BOOKS_FILE)
-                st.success(f"Book with ID '{delete_book_id}' deleted successfully!")
+elif option == 'Available Books':
+    with container:
+        st.subheader("📚 Available Books")
+        if books:
+            for book_id, title in books.items():
+                if book_id not in issued_books:
+                    st.markdown(f"""
+                    <div class="book-card">
+                        <b>ID:</b> {book_id}<br>
+                        <b>Title:</b> {title}
+                    </div>
+                    """, unsafe_allow_html=True)
+        else:
+            st.info("ℹ️ No books available in the library")
 
-elif option == 'Display Available Books':
-    st.header("Available Books")
-    if books:
-        for book_id, title in books.items():
-            if book_id not in issued_books:
-                st.write(f"ID: {book_id}, Title: {title}")
-    else:
-        st.write("No books available.")
-
-elif option == 'Display Issued Books':
-    st.header("Issued Books")
-    if issued_books:
-        for book_id, info in issued_books.items():
-            st.write(f"ID: {book_id}, Title: {books[book_id]}, Issued to: {info['student_name']} (ID: {info['student_id']})")
-    else:
-        st.write("No books issued.")
+elif option == 'Issued Books':
+    with container:
+        st.subheader("📖 Issued Books")
+        if issued_books:
+            for book_id, details in issued_books.items():
+                st.markdown(f"""
+                <div class="book-card">
+                    <b>ID:</b> {book_id}<br>
+                    <b>Title:</b> {books.get(book_id, 'Unknown')}<br>
+                    <b>Issued to:</b> {details['student_name']} ({details['student_id']})
+                </div>
+                """, unsafe_allow_html=True)
+        else:
+            st.info("ℹ️ No books currently issued")

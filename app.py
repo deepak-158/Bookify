@@ -1,7 +1,7 @@
 import streamlit as st
 import os
 
-# Custom CSS for styling
+
 st.markdown("""
     <style>
     .main {
@@ -75,11 +75,10 @@ issued_books = load_issued_books(ISSUED_BOOKS_FILE)
 st.markdown("<h1 style='text-align: center; color: #2C3E50; margin-bottom: 0;'>📚 Bookify</h1>", unsafe_allow_html=True)
 st.markdown("<h3 style='text-align: center; color: #3498DB; margin-top: 0;'>Library Management System</h3>", unsafe_allow_html=True)
 
-# Sidebar styling
 with st.sidebar:
-    #st.markdown("<div style='padding: 20px; border-radius: 10px; background-color: #2C3E50;'>", unsafe_allow_html=True)
+
     st.markdown("<h1 style='color: #3498DB; text-align: left;'>OPTIONS</h1>", unsafe_allow_html=True)
-    #st.markdown("<h3 style='color: #2C3E50; text-align: center;'>Central Library</h3>", unsafe_allow_html=True)
+   
     st.markdown("</div>", unsafe_allow_html=True)
     
     option = st.radio(
